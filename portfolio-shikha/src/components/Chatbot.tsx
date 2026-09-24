@@ -1,224 +1,225 @@
-// import { useState, useRef, useEffect } from 'react';
-// import { motion, AnimatePresence } from 'framer-motion';
-// import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Bot, MessageCircle, Send, User, X } from 'lucide-react';
 
-// type Message = { from: 'bot' | 'user'; text: string };
+type Message = {
+  id: number;
+  from: 'bot' | 'user';
+  text: string;
+};
 
-// const QUICK_REPLIES = [
-//   "Who are you?",
-//   "What are your skills?",
-//   "Tell me about your work",
-//   "How to contact you?",
-//   "View your projects",
-// ];
+const QUICK_REPLIES = [
+  'Who are you?',
+  'What are your skills?',
+  'Tell me about your work',
+  'How can I contact you?',
+];
 
-// const getBotReply = (input: string): string => {
-//   const q = input.toLowerCase();
+const getBotReply = (input: string): string => {
+  const question = input.toLowerCase();
 
-//   if (q.match(/who|about|yourself|introduce/))
-//     return "Hi! I'm Shikha Soni, a Frontend Developer with 2+ years of experience at Coditude, Pune. I specialize in React, JavaScript, HTML5, CSS3, and Bootstrap — building fast, responsive, and beautiful UIs. 🚀";
+  if (/who|about|yourself|introduce/.test(question)) {
+    return "Hi! I'm Shikha Soni, a Frontend Developer with 2+ years of experience at Coditude. I specialize in React, JavaScript, HTML5, CSS3, and Bootstrap.";
+  }
 
-//   if (q.match(/skill|tech|stack|language|know/))
-//     return "My core skills include:\n• React & JavaScript (ES6+)\n• HTML5, CSS3, Bootstrap\n• REST API Integration\n• Responsive & Mobile-First Design\n• Java, Python, C++\n• Git & Version Control";
+  if (/skill|tech|stack|language|know/.test(question)) {
+    return 'My core skills include React, JavaScript, HTML5, CSS3, Bootstrap, REST API integration, responsive design, Java, Python, C++, and Git.';
+  }
 
-//   if (q.match(/work|experience|job|company|coditude/))
-//     return "I'm currently a Software Engineer at Coditude, Pune (Oct 2022 – Present). I design React UIs, integrate RESTful APIs, ensure responsive design, and collaborate with designers and backend teams. 💼";
+  if (/work|experience|job|company|coditude/.test(question)) {
+    return "I'm currently a Software Engineer at Coditude, Pune. I build React interfaces, integrate REST APIs, optimize performance, and work with design and backend teams.";
+  }
 
-//   if (q.match(/project|build|ecommerce|giftos/))
-//     return "My key project is Ecommerce-Giftos — a fully functional React e-commerce app with dynamic cart, item management, and product data integration. I've also built responsive UI component libraries and API dashboards. 🛍️";
+  if (/project|build|ecommerce|giftos/.test(question)) {
+    return "I've built a personal portfolio, a React Tic-Tac-Toe game, a weather app with live API data, and Ecommerce-Giftos with dynamic cart functionality.";
+  }
 
-//   if (q.match(/education|degree|college|university|cgpa|study/))
-//     return "I hold a B.E. in Computer Science Engineering from Sri Parshuram Institute of Technology & Research, Khandwa — with a CGPA of 7.59. 🎓";
+  if (/education|degree|college|university|study/.test(question)) {
+    return 'I hold a B.E. in Computer Science Engineering from Sri Parshuram Institute of Technology & Research, Khandwa, with a CGPA of 7.59.';
+  }
 
-//   if (q.match(/achievement|award|hackathon|ibm|badge/))
-//     return "I've earned:\n🏆 JOB-A-THON — Analytics Vidhya (Sep 2021)\n🏅 IBM Badge — Data Science with Python";
+  if (/contact|email|phone|reach|hire|connect/.test(question)) {
+    return 'You can reach Shikha at shikhasoni2209@mail.com or +91 6264968375. You can also use the Contact section below.';
+  }
 
-//   if (q.match(/contact|email|phone|reach|hire|connect/))
-//     return "You can reach me at:\n📧 shikhasoni2209@mail.com\n📞 +91 6264968375\n💼 LinkedIn: Shikha Soni\n\nOr scroll down to the Contact section!";
+  if (/location|based|city|place|where/.test(question)) {
+    return "I'm based in Khandwa, Madhya Pradesh, India, and I'm open to remote work and relocation opportunities.";
+  }
 
-//   if (q.match(/location|based|city|place|where/))
-//     return "I'm based in Khandwa, Madhya Pradesh, India. I'm open to remote work and relocation opportunities. 📍";
+  if (/hello|hi|hey|good morning|good afternoon|good evening/.test(question)) {
+    return "Hey there! I'm Shikha's portfolio assistant. Ask me about her skills, experience, projects, or how to hire her.";
+  }
 
-//   if (q.match(/hello|hi|hey|good|morning|afternoon|evening/))
-//     return "Hey there! 👋 I'm Shikha's portfolio assistant. Ask me anything about her skills, experience, projects, or how to hire her!";
+  if (/thank|thanks/.test(question)) {
+    return "You're welcome! Feel free to ask anything else.";
+  }
 
-//   if (q.match(/thank|thanks/))
-//     return "You're welcome! Feel free to ask anything else, or head to the Contact section to get in touch with Shikha directly. 😊";
+  return "I can tell you about Shikha's skills, experience, projects, education, location, or contact details. What would you like to know?";
+};
 
-//   if (q.match(/bye|goodbye|see you/))
-//     return "Goodbye! Don't hesitate to reach out to Shikha — she'd love to hear from you! 👋";
+export function Chatbot() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      from: 'bot',
+      text: "Hi! I'm Shikha's portfolio assistant. Ask me about her skills, projects, experience, or how to hire her.",
+    },
+  ]);
+  const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(false);
+  const messageId = useRef(2);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-//   if (q.match(/freelance|available|hire|opportunity|role|position/))
-//     return "Shikha is open to Frontend Developer roles, freelance projects, and exciting collaborations! 🌟\n\nBest way to reach her:\n📧 shikhasoni2209@mail.com\n📞 +91 6264968375";
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, typing]);
 
-//   return "Great question! I'm not sure about that one. Try asking about Shikha's skills, experience, projects, education, or how to contact her. 💡";
-// };
+  const sendMessage = (text: string) => {
+    const trimmedText = text.trim();
+    if (!trimmedText || typing) return;
 
-// export function Chatbot() {
-//   const [open, setOpen] = useState(false);
-//   const [messages, setMessages] = useState<Message[]>([
-//     { from: 'bot', text: "Hi! 👋 I'm Shikha's portfolio assistant. Ask me about her skills, projects, experience, or how to hire her!" }
-//   ]);
-//   const [input, setInput] = useState('');
-//   const [typing, setTyping] = useState(false);
-//   const bottomRef = useRef<HTMLDivElement>(null);
+    setMessages((current) => [
+      ...current,
+      { id: messageId.current++, from: 'user', text: trimmedText },
+    ]);
+    setInput('');
+    setTyping(true);
 
-//   useEffect(() => {
-//     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-//   }, [messages, typing]);
+    window.setTimeout(() => {
+      setTyping(false);
+      setMessages((current) => [
+        ...current,
+        { id: messageId.current++, from: 'bot', text: getBotReply(trimmedText) },
+      ]);
+    }, 650);
+  };
 
-//   const sendMessage = (text: string) => {
-//     if (!text.trim()) return;
-//     const userMsg: Message = { from: 'user', text: text.trim() };
-//     setMessages(prev => [...prev, userMsg]);
-//     setInput('');
-//     setTyping(true);
-//     setTimeout(() => {
-//       setTyping(false);
-//       setMessages(prev => [...prev, { from: 'bot', text: getBotReply(text) }]);
-//     }, 900);
-//   };
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    sendMessage(input);
+  };
 
-//   const handleKey = (e: React.KeyboardEvent) => {
-//     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
-//   };
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendMessage(input);
+    }
+  };
 
-//   return (
-//     <>
-//       {/* Floating button */}
-//       <motion.button
-//         onClick={() => setOpen(o => !o)}
-//         whileHover={{ scale: 1.1 }}
-//         whileTap={{ scale: 0.95 }}
-//         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_8px_30px_rgba(37,99,235,0.5)] flex items-center justify-center text-white cursor-pointer border-0"
-//       >
-//         <AnimatePresence mode="wait">
-//           {open
-//             ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X className="w-6 h-6" /></motion.span>
-//             : <motion.span key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><MessageCircle className="w-6 h-6" /></motion.span>
-//           }
-//         </AnimatePresence>
-//         {/* Pulse ring */}
-//         {!open && (
-//           <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
-//         )}
-//       </motion.button>
+  return (
+    <>
+      <motion.button
+        type="button"
+        aria-label={open ? 'Close portfolio assistant' : 'Open portfolio assistant'}
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border-0 bg-linear-to-br from-primary to-secondary text-white shadow-[0_8px_30px_rgba(37,99,235,0.5)] sm:bottom-6 sm:right-6"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {open ? (
+            <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
+              <X className="h-6 w-6" />
+            </motion.span>
+          ) : (
+            <motion.span key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
+              <MessageCircle className="h-6 w-6" />
+            </motion.span>
+          )}
+        </AnimatePresence>
+        {!open && <span className="absolute inset-0 -z-10 rounded-full bg-primary/40 animate-ping" />}
+      </motion.button>
 
-//       {/* Chat panel */}
-//       <AnimatePresence>
-//         {open && (
-//           <motion.div
-//             initial={{ opacity: 0, y: 30, scale: 0.92 }}
-//             animate={{ opacity: 1, y: 0, scale: 1 }}
-//             exit={{ opacity: 0, y: 30, scale: 0.92 }}
-//             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-//             className="fixed bottom-24 right-6 z-50 w-[340px] sm:w-[380px] rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/10 flex flex-col"
-//             style={{ maxHeight: '70vh' }}
-//           >
-//             {/* Header */}
-//             <div className="bg-gradient-to-r from-primary to-secondary px-5 py-4 flex items-center gap-3 shrink-0">
-//               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-//                 <Bot className="w-5 h-5 text-white" />
-//               </div>
-//               <div>
-//                 <p className="text-white font-bold text-sm">Portfolio Assistant</p>
-//                 <div className="flex items-center gap-1.5">
-//                   <span className="w-2 h-2 rounded-full bg-green-300 animate-pulse" />
-//                   <p className="text-white/80 text-xs">Ask me anything about Shikha</p>
-//                 </div>
-//               </div>
-//             </div>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="dialog"
+            aria-label="Portfolio assistant"
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            className="fixed bottom-[5.25rem] right-4 z-50 flex w-[calc(100vw-2rem)] max-w-[380px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a12] shadow-[0_25px_60px_rgba(0,0,0,0.6)] sm:bottom-24 sm:right-6"
+            style={{ maxHeight: 'min(70vh, 620px)' }}
+          >
+            <div className="flex shrink-0 items-center gap-3 bg-linear-to-r from-primary to-secondary px-5 py-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
+                <Bot className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Portfolio Assistant</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-green-300" />
+                  <p className="text-xs text-white/80">Ask me about Shikha</p>
+                </div>
+              </div>
+            </div>
 
-//             {/* Messages */}
-//             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#0a0a12]">
-//               {messages.map((msg, i) => (
-//                 <motion.div
-//                   key={i}
-//                   initial={{ opacity: 0, y: 10 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   transition={{ duration: 0.25 }}
-//                   className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}
-//                 >
-//                   {msg.from === 'bot' && (
-//                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0 mb-0.5">
-//                       <Bot className="w-3.5 h-3.5 text-white" />
-//                     </div>
-//                   )}
-//                   <div
-//                     className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
-//                       msg.from === 'user'
-//                         ? 'bg-gradient-to-br from-primary to-secondary text-white rounded-br-sm'
-//                         : 'bg-white/8 border border-white/10 text-white/90 rounded-bl-sm'
-//                     }`}
-//                   >
-//                     {msg.text}
-//                   </div>
-//                   {msg.from === 'user' && (
-//                     <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 mb-0.5">
-//                       <User className="w-3.5 h-3.5 text-white" />
-//                     </div>
-//                   )}
-//                 </motion.div>
-//               ))}
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex items-end gap-2 ${message.from === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {message.from === 'bot' && (
+                    <div className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-secondary">
+                      <Bot className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  )}
+                  <div className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${message.from === 'user' ? 'rounded-br-sm bg-linear-to-br from-primary to-secondary text-white' : 'rounded-bl-sm border border-white/10 bg-white/8 text-white/90'}`}>
+                    {message.text}
+                  </div>
+                  {message.from === 'user' && (
+                    <div className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10">
+                      <User className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
 
-//               {/* Typing indicator */}
-//               {typing && (
-//                 <motion.div
-//                   initial={{ opacity: 0, y: 10 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   className="flex items-end gap-2"
-//                 >
-//                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0">
-//                     <Bot className="w-3.5 h-3.5 text-white" />
-//                   </div>
-//                   <div className="bg-white/8 border border-white/10 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 items-center">
-//                     {[0, 1, 2].map(i => (
-//                       <motion.span
-//                         key={i}
-//                         animate={{ y: [0, -5, 0] }}
-//                         transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
-//                         className="w-2 h-2 rounded-full bg-primary/70 inline-block"
-//                       />
-//                     ))}
-//                   </div>
-//                 </motion.div>
-//               )}
-//               <div ref={bottomRef} />
-//             </div>
+              {typing && (
+                <div className="flex items-end gap-2">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-secondary">
+                    <Bot className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border border-white/10 bg-white/8 px-4 py-3">
+                    {[0, 1, 2].map((item) => (
+                      <motion.span key={item} animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: item * 0.15 }} className="h-2 w-2 rounded-full bg-primary/70" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
 
-//             {/* Quick replies */}
-//             <div className="px-3 py-2 bg-[#0a0a12] border-t border-white/5 flex gap-2 overflow-x-auto shrink-0 scrollbar-none">
-//               {QUICK_REPLIES.map(r => (
-//                 <button
-//                   key={r}
-//                   onClick={() => sendMessage(r)}
-//                   className="shrink-0 text-xs px-3 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors whitespace-nowrap cursor-pointer bg-transparent"
-//                 >
-//                   {r}
-//                 </button>
-//               ))}
-//             </div>
+            <div className="flex shrink-0 gap-2 overflow-x-auto border-t border-white/5 px-3 py-2">
+              {QUICK_REPLIES.map((reply) => (
+                <button key={reply} type="button" onClick={() => sendMessage(reply)} disabled={typing} className="shrink-0 whitespace-nowrap rounded-full border border-primary/30 bg-transparent px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50">
+                  {reply}
+                </button>
+              ))}
+            </div>
 
-//             {/* Input */}
-//             <div className="px-3 py-3 bg-[#0c0c16] border-t border-white/10 flex items-center gap-2 shrink-0">
-//               <input
-//                 value={input}
-//                 onChange={e => setInput(e.target.value)}
-//                 onKeyDown={handleKey}
-//                 placeholder="Type a message..."
-//                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-primary/50 transition-colors"
-//               />
-//               <button
-//                 onClick={() => sendMessage(input)}
-//                 disabled={!input.trim()}
-//                 className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white disabled:opacity-40 hover:shadow-[0_4px_15px_rgba(37,99,235,0.4)] transition-all cursor-pointer border-0 shrink-0"
-//               >
-//                 <Send className="w-4 h-4" />
-//               </button>
-//             </div>
-//           </motion.div>
-//         )}
-//       </AnimatePresence>
-//     </>
-//   );
-// }
+            <form onSubmit={handleSubmit} className="flex shrink-0 items-center gap-2 border-t border-white/10 bg-[#0c0c16] px-3 py-3">
+              <input
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message..."
+                aria-label="Message for portfolio assistant"
+                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-primary/50"
+              />
+              <button type="submit" aria-label="Send message" disabled={!input.trim() || typing} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-0 bg-linear-to-br from-primary to-secondary text-white transition-all hover:shadow-[0_4px_15px_rgba(37,99,235,0.4)] disabled:cursor-not-allowed disabled:opacity-40">
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

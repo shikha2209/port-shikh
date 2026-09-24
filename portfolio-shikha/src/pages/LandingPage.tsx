@@ -8,7 +8,7 @@ import { Skills } from "../components/Skills";
 import { Journey } from "../components/Journey";
 import { Contact } from "../components/Contact";
 import { Footer } from "../components/Footer";
-
+import { Chatbot } from "../components/Chatbot";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative">
@@ -31,6 +31,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <Footer />
+      <Chatbot/>
     </div>
   );
 }
